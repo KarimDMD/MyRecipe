@@ -1,9 +1,10 @@
 <template>
-  <v-app>
-    <v-container>
+  <div>
+    <v-container class="my-4">
+	<search-bar @search="filterRecipes" />
       <v-row>
         <v-col
-          v-for="recipe in recipes"
+          v-for="recipe in filteredRecipes"
           :key="recipe.id"
           cols="12"
           sm="6"
@@ -14,31 +15,45 @@
         </v-col>
       </v-row>
     </v-container>
-  </v-app>
+  </div>
 </template>
+
 
 <script>
 import RecipeCard from "./RecipeCard.vue";
+import SearchBar from "./SearchBar.vue"
 
 export default {
 	components: {
 		RecipeCard,
+		SearchBar,
 	},
 	data() {
 		return {
-		 recipes: [],
+			recipes: [],
+			filteredRecipes: [],
 		};
 	},
+	methods: {
+		filterRecipes(query) {
+		this.filteredRecipes = this.recipes.filter((recipe) => {
+			const nameMatch = recipe.title.toLowerCase().includes(query.toLowerCase());
+			const ingredientsMatch = recipe.ingredients.toLowerCase().includes(query.toLowerCase());
+			return nameMatch || ingredientsMatch;
+		});
+		},
+	},
 	created() {
-    fetch('/api/recipes')
-      .then((response) => response.json())
-      .then((data) => {
-        this.recipes = data;
-      })
-      .catch((error) => {
-        console.error('Erreur lors de la récupération des recettes :', error);
-      });
-  },
+		fetch('/api/recipes')
+			.then((response) => response.json())
+			.then((data) => {
+				this.recipes = data;
+				this.filterRecipes('');
+			})
+			.catch((error) => {
+				console.error('Erreur lors de la récupération des recettes :', error);
+			});
+  	},
 };
 </script>
 
