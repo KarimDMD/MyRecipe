@@ -49,12 +49,48 @@
 import RecipeCard from "./RecipeCard.vue";
 import SearchBar from "./SearchBar.vue";
 import RecipeForm from "./RecipeForm.vue";
+import { createEventBus } from "../event-bus.js";
 
 export default {
   components: {
     RecipeCard,
     SearchBar,
     RecipeForm,
+  },
+
+  created() {
+    fetch("/api/recipes")
+      .then((response) => response.json())
+      .then((data) => {
+        this.recipes = data;
+        this.filterRecipes("");
+      })
+      .catch((error) => {
+        console.error("Erreur lors de la récupération des recettes :", error);
+      });
+
+    const eventBus = createEventBus();
+    eventBus.on("recipe-updated", (updatedRecipe) => {
+      const index = this.recipes.findIndex(
+        (recipe) => recipe.id === updatedRecipe.id
+      );
+
+      if (index !== -1) {
+        this.recipes.splice(index, 1);
+        this.recipes.push(updatedRecipe);
+
+        const filteredIndex = this.filteredRecipes.findIndex(
+          (recipe) => recipe.id === updatedRecipe.id
+        );
+        if (filteredIndex !== -1) {
+          this.filteredRecipes.splice(filteredIndex, 1);
+          this.filteredRecipes.push(updatedRecipe);
+        }
+
+        // Fermer le formulaire
+        this.formVisible = false;
+      }
+    });
   },
 
   data() {
@@ -94,6 +130,29 @@ export default {
       this.formVisible = false;
     },
 
+    // On EDIT
+    // onRecipeUpdated(updatedRecipe) {
+    //   console.log("ça rentre");
+    //   const index = this.recipes.findIndex(
+    //     (recipe) => recipe.id === updatedRecipe.id
+    //   );
+    //   if (index !== -1) {
+    //     this.recipes.splice(index, 1);
+    //   }
+
+    //   const filteredIndex = this.filteredRecipes.findIndex(
+    //     (recipe) => recipe.id === updatedRecipe.id
+    //   );
+    //   if (filteredIndex !== -1) {
+    //     this.filteredRecipes.splice(filteredIndex, 1);
+    //   }
+
+    //   this.recipes.push(updatedRecipe);
+    //   this.filteredRecipes.push(updatedRecipe);
+
+    //
+    // },
+
     // On DELETE
     handleRecipeDeleted(deletedRecipeId) {
       this.recipes = this.recipes.filter(
@@ -103,18 +162,6 @@ export default {
         (recipe) => recipe.id !== deletedRecipeId
       );
     },
-  },
-
-  created() {
-    fetch("/api/recipes")
-      .then((response) => response.json())
-      .then((data) => {
-        this.recipes = data;
-        this.filterRecipes("");
-      })
-      .catch((error) => {
-        console.error("Erreur lors de la récupération des recettes :", error);
-      });
   },
 };
 </script>

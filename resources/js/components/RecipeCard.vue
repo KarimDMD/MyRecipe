@@ -16,6 +16,7 @@
     <recipe-form
       ref="editForm"
       @cancel="closePopup"
+      @recipe-updated="closePopup"
       :recipeToEdit="selectedRecipe"
     />
   </v-dialog>
@@ -105,9 +106,6 @@ export default {
       const date = new Date(dateString);
       return date.toLocaleDateString("fr-FR", options);
     },
-
-    // Edit Recipe
-    editRecipe() {},
 
     // Delete Recipe
     deleteRecipe() {

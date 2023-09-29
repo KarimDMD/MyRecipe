@@ -47,14 +47,14 @@ class RecipeController extends Controller
         $validatedData = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string|max:1000',
-            'ingredients' => 'required|array',
+            'ingredients' => 'required|string',
         ]);
 
         $recipe = Recipe::findOrFail($id);
 
         $recipe->title = $validatedData['title'];
         $recipe->description = $validatedData['description'];
-        $recipe->ingredients = json_encode($validatedData['ingredients']);
+        $recipe->ingredients = $validatedData['ingredients'];
 
         $recipe->save();
 
