@@ -56,6 +56,7 @@ export default {
     SearchBar,
     RecipeForm,
   },
+
   data() {
     return {
       recipes: [],
@@ -64,6 +65,7 @@ export default {
       ingredients: [""],
     };
   },
+
   methods: {
     filterRecipes(query) {
       this.filteredRecipes = this.recipes.filter((recipe) => {
@@ -76,17 +78,23 @@ export default {
         return nameMatch || ingredientsMatch;
       });
     },
+
+    // Form
     showRecipeForm() {
       this.formVisible = true;
     },
     hideRecipeForm() {
       this.formVisible = false;
     },
+
+    // On ADD
     onRecipeAdded(newRecipe) {
       this.recipes.push(newRecipe);
       this.filteredRecipes.push(newRecipe);
       this.formVisible = false;
     },
+
+    // On DELETE
     handleRecipeDeleted(deletedRecipeId) {
       this.recipes = this.recipes.filter(
         (recipe) => recipe.id !== deletedRecipeId
@@ -96,6 +104,7 @@ export default {
       );
     },
   },
+
   created() {
     fetch("/api/recipes")
       .then((response) => response.json())

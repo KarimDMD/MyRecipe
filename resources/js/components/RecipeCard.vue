@@ -7,9 +7,18 @@
 
   <!-- Btn Modifier / Supprimer -->
   <v-card-actions class="d-flex justify-center">
-    <v-btn text color="primary">Modifier</v-btn>
+    <v-btn text color="primary" @click="showEditPopup">Modifier</v-btn>
     <v-btn text color="error" @click="showDeletePopup">Supprimer</v-btn>
   </v-card-actions>
+
+  <!-- Popup Edit Form -->
+  <v-dialog v-model="editPopupVisible" max-width="500">
+    <recipe-form
+      ref="editForm"
+      @cancel="closePopup"
+      :recipeToEdit="selectedRecipe"
+    />
+  </v-dialog>
 
   <!-- Popup Supprimer -->
   <v-dialog v-model="deletePopupVisible" max-width="400">
@@ -59,20 +68,31 @@
 </template>
 
 <script>
+import RecipeForm from "./RecipeForm.vue";
+
 export default {
+  components: {
+    RecipeForm,
+  },
+
   props: {
     recipe: Object,
   },
+
   emits: ["recipe-deleted"],
+
   data() {
     return {
       popupVisible: false,
+      editPopupVisible: false,
       deletePopupVisible: false,
       selectedRecipe: null,
       confirmDeleteDialog: false,
     };
   },
+
   methods: {
+    // Format Date
     formatDate(dateString) {
       const options = {
         year: "numeric",
@@ -114,6 +134,11 @@ export default {
       this.popupVisible = true;
     },
 
+    showEditPopup() {
+      this.selectedRecipe = this.recipe;
+      this.editPopupVisible = true;
+    },
+
     showDeletePopup() {
       this.selectedRecipe = this.recipe;
       this.deletePopupVisible = true;
@@ -121,6 +146,7 @@ export default {
 
     closePopup() {
       this.popupVisible = false;
+      this.editPopupVisible = false;
       this.deletePopupVisible = false;
     },
   },

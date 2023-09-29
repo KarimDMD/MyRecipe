@@ -1,6 +1,7 @@
 <template>
   <v-card class="pa-4">
     <v-card-title class="mb-4">Ajouter une recette</v-card-title>
+    <!-- FORM -->
     <v-form @submit.prevent="addRecipe" ref="form">
       <!-- Titre -->
       <v-text-field
@@ -51,6 +52,7 @@
       </v-btn>
 
       <!-- Liste des ingrédients -->
+      <p class="mt-3"><strong>Ingrédients</strong></p>
       <v-row
         v-for="(ingredient, index) in ingredients"
         :key="index"
@@ -81,6 +83,10 @@
 
 <script>
 export default {
+  props: {
+    recipeToEdit: Object,
+  },
+
   data() {
     return {
       title: "",
@@ -95,7 +101,17 @@ export default {
       isFormValid: true,
     };
   },
+
+  created() {
+    if (this.recipeToEdit) {
+      this.title = this.recipeToEdit.title;
+      this.description = this.recipeToEdit.description;
+      this.ingredients = JSON.parse(this.recipeToEdit.ingredients);
+    }
+  },
+
   methods: {
+    // ADD Recipe
     addRecipe() {
       if (
         this.$refs.form.validate() &&
@@ -135,6 +151,7 @@ export default {
       }
     },
 
+    // Manage Ingredients
     addIngredient() {
       if (
         this.$refs.form.validate() &&
@@ -162,10 +179,10 @@ export default {
         .join("\n");
     },
 
+    // Cancel and Close
     cancel() {
       this.$emit("cancel");
     },
-
     closeDialog() {
       this.dialogVisible = false;
       this.cancel();
