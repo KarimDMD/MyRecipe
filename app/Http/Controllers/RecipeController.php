@@ -20,7 +20,6 @@ class RecipeController extends Controller
         return view('recipes.index', compact('recipes'));
     }
 
-
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -45,17 +44,32 @@ class RecipeController extends Controller
 
     public function update(Request $request, $id)
     {
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string|max:1000',
+            'ingredients' => 'required|string',
+        ]);
+
+        $recipe = Recipe::findOrFail($id);
+
+        $recipe->title = $validatedData['title'];
+        $recipe->description = $validatedData['description'];
+        $recipe->ingredients = $validatedData['ingredients'];
+
+        $recipe->save();
+
+        return response()->json(['message' => 'Recette mise à jour avec succès']);
     }
 
     public function delete($id)
-{
-    try {
-        $recipe = Recipe::findOrFail($id);
-        $recipe->delete();
+    {
+        try {
+            $recipe = Recipe::findOrFail($id);
+            $recipe->delete();
 
-        return response()->json(['message' => 'Recette supprimée avec succès']);
-    } catch (\Exception $e) {
-        return response()->json(['error' => 'Erreur lors de la suppression de la recette'], 500);
+            return response()->json(['message' => 'Recette supprimée avec succès']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Erreur lors de la suppression de la recette'], 500);
+        }
     }
-}
 }

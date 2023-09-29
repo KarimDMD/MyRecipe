@@ -1,7 +1,10 @@
 <template>
   <v-card class="pa-4">
-    <v-card-title class="mb-4">Ajouter une recette</v-card-title>
-    <v-form @submit.prevent="addRecipe" ref="form">
+    <v-card-title class="mb-4">
+      {{ isEditing ? "Modifier la recette" : "Ajouter une recette" }}
+    </v-card-title>
+    <!-- FORM -->
+    <v-form @submit.prevent="isEditing ? editRecipe() : addRecipe()" ref="form">
       <!-- Titre -->
       <v-text-field
         v-model="title"
@@ -25,7 +28,6 @@
             v-model="newIngredient.ingredient"
             label="Ingrédient"
             :rules="[ingredientRule]"
-            required
           ></v-text-field>
         </v-col>
         <v-col cols="4">
@@ -33,7 +35,6 @@
             v-model="newIngredient.quantity"
             label="Quantité"
             :rules="[quantityRule]"
-            required
             type="number"
           ></v-text-field>
         </v-col>
@@ -42,7 +43,6 @@
             v-model="newIngredient.unit"
             label="Unité"
             :rules="[unitRule]"
-            required
           ></v-text-field>
         </v-col>
       </v-row>
@@ -51,6 +51,7 @@
       </v-btn>
 
       <!-- Liste des ingrédients -->
+      <p class="mt-3"><strong>Ingrédients</strong></p>
       <v-row
         v-for="(ingredient, index) in ingredients"
         :key="index"
@@ -72,7 +73,9 @@
 
       <!-- Btn Ajouter / Annuler -->
       <v-card-actions class="d-flex justify-center">
-        <v-btn type="submit" color="primary">Ajouter</v-btn>
+        <v-btn type="submit" color="primary">
+          {{ isEditing ? "Valider" : "Ajouter" }}
+        </v-btn>
         <v-btn color="error" @click="cancel">Annuler</v-btn>
       </v-card-actions>
     </v-form>
@@ -80,9 +83,17 @@
 </template>
 
 <script>
+import { createEventBus } from "../event-bus.js";
+const eventBus = createEventBus();
+
 export default {
+  props: {
+    recipeToEdit: Object,
+  },
+
   data() {
     return {
+      isEditing: false,
       title: "",
       description: "",
       ingredientText: "",
@@ -95,23 +106,29 @@ export default {
       isFormValid: true,
     };
   },
+
+  created() {
+    if (this.recipeToEdit) {
+      this.title = this.recipeToEdit.title;
+      this.description = this.recipeToEdit.description;
+      this.ingredients = JSON.parse(this.recipeToEdit.ingredients);
+      this.isEditing = true;
+    }
+  },
+
   methods: {
+    // ADD Recipe
     addRecipe() {
       if (
         this.$refs.form.validate() &&
         this.title &&
         this.description &&
-        this.newIngredient.ingredient &&
-        this.newIngredient.quantity &&
-        this.newIngredient.unit
+        this.ingredients.length > 0
       ) {
         const newRecipe = {
           title: this.title,
           description: this.description,
-          ingredients: JSON.stringify([
-            ...this.ingredients,
-            this.newIngredient,
-          ]),
+          ingredients: JSON.stringify([...this.ingredients]),
         };
 
         fetch("/api/recipes", {
@@ -135,6 +152,44 @@ export default {
       }
     },
 
+    // EDIT Recipe
+    editRecipe() {
+      if (
+        this.$refs.form.validate() &&
+        this.title !== "" &&
+        this.description !== "" &&
+        this.ingredients.length > 0
+      ) {
+        const updatedRecipe = {
+          id: this.recipeToEdit.id,
+          title: this.title,
+          description: this.description,
+          ingredients: JSON.stringify(this.ingredients),
+        };
+
+        fetch(`/api/recipes/${this.recipeToEdit.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedRecipe),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            eventBus.emit("recipe-updated", updatedRecipe);
+
+            this.$emit("cancel");
+          })
+          .catch((error) => {
+            console.error(
+              "Erreur lors de la mise à jour de la recette :",
+              error
+            );
+          });
+      }
+    },
+
+    // Manage Ingredients
     addIngredient() {
       if (
         this.$refs.form.validate() &&
@@ -162,10 +217,10 @@ export default {
         .join("\n");
     },
 
+    // Cancel and Close
     cancel() {
       this.$emit("cancel");
     },
-
     closeDialog() {
       this.dialogVisible = false;
       this.cancel();
