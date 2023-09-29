@@ -2,13 +2,14 @@
   <v-card class="pa-4">
     <v-card-title class="mb-4">Ajouter une recette</v-card-title>
     <v-form @submit.prevent="addRecipe" ref="form">
-      <!-- Ttile -->
+      <!-- Titre -->
       <v-text-field
         v-model="title"
         label="Titre"
         :rules="[titleRule]"
         required
       ></v-text-field>
+
       <!-- Description -->
       <v-text-field
         v-model="description"
@@ -16,67 +17,64 @@
         :rules="[descriptionRule]"
         required
       ></v-text-field>
-      <!-- Ingredients -->
-      <v-row
-        v-for="(ingredient, index) in ingredients"
-        :key="index"
-        class="align-center"
-        style="margin-bottom: -35px"
-      >
+
+      <!-- Ingrédients -->
+      <v-row class="align-center">
         <v-col cols="4">
           <v-text-field
-            v-model="ingredient.ingredient"
+            v-model="newIngredient.ingredient"
             label="Ingrédient"
+            :rules="[ingredientRule]"
             required
           ></v-text-field>
         </v-col>
-        <v-col cols="3">
+        <v-col cols="4">
           <v-text-field
-            v-model="ingredient.quantity"
+            v-model="newIngredient.quantity"
             label="Quantité"
+            :rules="[quantityRule]"
             required
             type="number"
           ></v-text-field>
         </v-col>
-        <v-col cols="3">
+        <v-col cols="4">
           <v-text-field
-            v-model="ingredient.unit"
+            v-model="newIngredient.unit"
             label="Unité"
+            :rules="[unitRule]"
             required
           ></v-text-field>
         </v-col>
-        <v-col cols="2" class="d-flex align-center">
-          <v-btn
-            v-if="index > 0"
-            color="error"
-            @click="removeIngredient(index)"
-          >
-            X
-          </v-btn>
-        </v-col>
       </v-row>
-      <v-btn color="primary" @click="addIngredient" style="margin-top: 25px">
+      <v-btn color="primary" @click="addIngredient">
         Ajouter un ingrédient
       </v-btn>
 
+      <!-- Liste des ingrédients -->
+      <v-row
+        v-for="(ingredient, index) in ingredients"
+        :key="index"
+        class="align-center"
+      >
+        <v-col cols="7" md="6">
+          <p>{{ ingredient.ingredient }}</p>
+        </v-col>
+        <v-col cols="1" md="2">
+          <p>{{ ingredient.quantity }}</p>
+        </v-col>
+        <v-col cols="2" md="2">
+          <p>{{ ingredient.unit }}</p>
+        </v-col>
+        <v-col cols="2" md="2" class="d-flex align-center">
+          <v-btn color="error" @click="removeLastIngredient(index)">X</v-btn>
+        </v-col>
+      </v-row>
+
       <!-- Btn Ajouter / Annuler -->
       <v-card-actions class="d-flex justify-center">
-        <v-btn type="submit" color="primary" :disabled="!isFormValid"
-          >Ajouter</v-btn
-        >
+        <v-btn type="submit" color="primary">Ajouter</v-btn>
         <v-btn color="error" @click="cancel">Annuler</v-btn>
       </v-card-actions>
-
-      <!-- Confirmation Popup -->
-      <v-dialog v-model="dialogVisible" max-width="400">
-        <v-card>
-          <v-card-title class="text-center">{{ dialogTitle }}</v-card-title>
-          <v-card-text>{{ dialogMessage }}</v-card-text>
-          <v-card-actions>
-            <v-btn color="primary" @click="closeDialog">Ok</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
     </v-form>
   </v-card>
 </template>
@@ -87,20 +85,33 @@ export default {
     return {
       title: "",
       description: "",
-      ingredients: [{ ingredient: "", quantity: null, unit: "" }],
-      dialogVisible: false,
-      dialogTitle: "",
-      dialogMessage: "",
+      ingredientText: "",
+      newIngredient: {
+        ingredient: "",
+        quantity: "",
+        unit: "",
+      },
+      ingredients: [],
       isFormValid: true,
     };
   },
   methods: {
     addRecipe() {
-      if (this.$refs.form.validate()) {
+      if (
+        this.$refs.form.validate() &&
+        this.title &&
+        this.description &&
+        this.newIngredient.ingredient &&
+        this.newIngredient.quantity &&
+        this.newIngredient.unit
+      ) {
         const newRecipe = {
           title: this.title,
           description: this.description,
-          ingredients: JSON.stringify(this.ingredients),
+          ingredients: JSON.stringify([
+            ...this.ingredients,
+            this.newIngredient,
+          ]),
         };
 
         fetch("/api/recipes", {
@@ -116,29 +127,39 @@ export default {
             this.description = "";
             this.ingredients = [{ ingredient: "", quantity: null, unit: "" }];
 
-            this.dialogTitle = "Recette ajoutée";
-            this.dialogMessage = "La recette a été ajoutée avec succès.";
-            this.dialogVisible = true;
-
             this.$emit("recipe-added", data);
           })
           .catch((error) => {
             console.error("Erreur lors de l'ajout de la recette :", error);
-
-            this.dialogTitle = "Erreur";
-            this.dialogMessage =
-              "Une erreur s'est produite lors de l'ajout de la recette.";
-            this.dialogVisible = true;
           });
       }
     },
 
     addIngredient() {
-      this.ingredients.push({ ingredient: "", quantity: null, unit: "" });
+      if (
+        this.$refs.form.validate() &&
+        this.newIngredient.ingredient &&
+        this.newIngredient.quantity &&
+        this.newIngredient.unit
+      ) {
+        this.ingredients.push({ ...this.newIngredient });
+        this.newIngredient = { ingredient: "", quantity: "", unit: "" };
+        this.updateIngredientText();
+      }
     },
 
-    removeIngredient(index) {
+    removeLastIngredient(index) {
       this.ingredients.splice(index, 1);
+      this.updateIngredientText();
+    },
+
+    updateIngredientText() {
+      this.ingredientText = this.ingredients
+        .map(
+          (ingredient) =>
+            `${ingredient.ingredient} ${ingredient.quantity} ${ingredient.unit}`
+        )
+        .join("\n");
     },
 
     cancel() {
@@ -167,6 +188,27 @@ export default {
       }
       if (v.length < 3 || v.length > 100) {
         return "La description doit avoir entre 3 et 100 caractères max";
+      }
+      return true;
+    },
+
+    ingredientRule(v) {
+      if (!v || v.length < 3 || v.length > 20) {
+        return "L'ingrédient doit avoir entre 3 et 20 caractères.";
+      }
+      return true;
+    },
+
+    quantityRule(v) {
+      if (v <= 0) {
+        return "La quantité doit être supérieure à zéro.";
+      }
+      return true;
+    },
+
+    unitRule(v) {
+      if (v.length < 2 || v.length > 20) {
+        return "L'unité doit avoir entre 2 et 20 caractères.";
       }
       return true;
     },

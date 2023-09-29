@@ -5,6 +5,12 @@
     <v-card-text class="description">{{ recipe.description }}</v-card-text>
   </v-card>
 
+  <!-- Button Update / Delete -->
+  <v-card-actions class="d-flex justify-center">
+    <v-btn text color="primary">Modifier</v-btn>
+    <v-btn text color="error">Supprimer</v-btn>
+  </v-card-actions>
+
   <!-- Popup Recipe Detail-->
   <v-dialog v-model="popupVisible" max-width="400">
     <v-card>
