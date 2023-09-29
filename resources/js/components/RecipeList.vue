@@ -1,7 +1,10 @@
 <template>
   <div>
     <v-container class="my-4">
+      <!-- SearchBar -->
       <search-bar @search="filterRecipes" />
+
+      <!-- Btn Ajouter Recette -->
       <v-row class="d-flex justify-center align-center">
         <v-col
           cols="12"
@@ -15,6 +18,8 @@
           >
         </v-col>
       </v-row>
+
+      <!-- Card -->
       <v-row>
         <v-col
           v-for="recipe in filteredRecipes"
@@ -24,7 +29,10 @@
           md="4"
           lg="3"
         >
-          <recipe-card :recipe="recipe"></recipe-card>
+          <recipe-card
+            :recipe="recipe"
+            @recipe-deleted="handleRecipeDeleted"
+          ></recipe-card>
         </v-col>
       </v-row>
     </v-container>
@@ -78,6 +86,14 @@ export default {
       this.recipes.push(newRecipe);
       this.filteredRecipes.push(newRecipe);
       this.formVisible = false;
+    },
+    handleRecipeDeleted(deletedRecipeId) {
+      this.recipes = this.recipes.filter(
+        (recipe) => recipe.id !== deletedRecipeId
+      );
+      this.filteredRecipes = this.filteredRecipes.filter(
+        (recipe) => recipe.id !== deletedRecipeId
+      );
     },
   },
   created() {

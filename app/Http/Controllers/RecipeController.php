@@ -47,7 +47,15 @@ class RecipeController extends Controller
     {
     }
 
-    public function destroy($id)
-    {
+    public function delete($id)
+{
+    try {
+        $recipe = Recipe::findOrFail($id);
+        $recipe->delete();
+
+        return response()->json(['message' => 'Recette supprimée avec succès']);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Erreur lors de la suppression de la recette'], 500);
     }
+}
 }

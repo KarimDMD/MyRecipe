@@ -1,17 +1,34 @@
 <template>
   <!-- Card -->
-  <v-card class="my-card" elevation="5" @click="showPopup(index)">
+  <v-card class="my-card" elevation="5" @click="showDetailPopup(index)">
     <v-card-title class="text-center">{{ recipe.title }}</v-card-title>
     <v-card-text class="description">{{ recipe.description }}</v-card-text>
   </v-card>
 
-  <!-- Button Update / Delete -->
+  <!-- Btn Modifier / Supprimer -->
   <v-card-actions class="d-flex justify-center">
     <v-btn text color="primary">Modifier</v-btn>
-    <v-btn text color="error">Supprimer</v-btn>
+    <v-btn text color="error" @click="showDeletePopup">Supprimer</v-btn>
   </v-card-actions>
 
-  <!-- Popup Recipe Detail-->
+  <!-- Popup Supprimer -->
+  <v-dialog v-model="deletePopupVisible" max-width="400">
+    <v-card>
+      <v-card-title class="text-center"
+        >Confirmation de suppression</v-card-title
+      >
+      <v-card-text>
+        Êtes-vous sûr de vouloir supprimer cette recette ?
+      </v-card-text>
+      <v-card-actions class="d-flex justify-center">
+        <!-- Ajoutez la classe ici -->
+        <v-btn color="primary" @click="deleteRecipe">Valider</v-btn>
+        <v-btn color="error" @click="closePopup">Annuler</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <!-- Popup Detail Recipe -->
   <v-dialog v-model="popupVisible" max-width="400">
     <v-card>
       <v-card-title class="text-center">{{
@@ -46,10 +63,13 @@ export default {
   props: {
     recipe: Object,
   },
+  emits: ["recipe-deleted"],
   data() {
     return {
       popupVisible: false,
+      deletePopupVisible: false,
       selectedRecipe: null,
+      confirmDeleteDialog: false,
     };
   },
   methods: {
@@ -66,19 +86,45 @@ export default {
       return date.toLocaleDateString("fr-FR", options);
     },
 
-    showPopup() {
+    // Edit Recipe
+    editRecipe() {},
+
+    // Delete Recipe
+    deleteRecipe() {
+      const recipeId = this.selectedRecipe.id;
+      fetch(`/api/recipes/${recipeId}`, {
+        method: "DELETE",
+      })
+        .then((response) => {
+          if (response.ok) {
+            this.closePopup();
+            this.$emit("recipe-deleted", this.recipe.id);
+          } else {
+            console.error("Erreur lors de la suppression de la recette");
+          }
+        })
+        .catch((error) => {
+          console.error("Erreur lors de la suppression de la recette :", error);
+        });
+    },
+
+    // Popup Management
+    showDetailPopup() {
       this.selectedRecipe = this.recipe;
       this.popupVisible = true;
     },
 
-    closePopup() {
-      this.popupVisible = false;
+    showDeletePopup() {
+      this.selectedRecipe = this.recipe;
+      this.deletePopupVisible = true;
     },
 
-    editRecipe() {},
-
-    deleteRecipe() {},
+    closePopup() {
+      this.popupVisible = false;
+      this.deletePopupVisible = false;
+    },
   },
+
   computed: {
     parsedIngredients() {
       if (this.selectedRecipe && this.selectedRecipe.ingredients) {

@@ -22,4 +22,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::get('/recipes', [RecipeController::class, 'index']);
 Route::post('/recipes', [RecipeController::class, 'store']);
 Route::put('/recipes/{id}', [RecipeController::class, 'update']);
-Route::delete('/recipes/{id}', [RecipeController::class, 'destroy']);
+Route::delete('/recipes/{id}', [RecipeController::class, 'delete']);
