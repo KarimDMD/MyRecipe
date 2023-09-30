@@ -254,8 +254,8 @@ export default {
       if (!v) {
         return "Un titre est requis";
       }
-      if (v.length < 3 || v.length > 20) {
-        return "Le titre doit avoir entre 3 et 20 caractères max";
+      if (v.length < 3 || v.length > 30) {
+        return "Le titre doit avoir entre 3 et 30 caractères max";
       }
       return true;
     },
@@ -271,8 +271,8 @@ export default {
     },
 
     ingredientRule(v) {
-      if (!v || v.length < 3 || v.length > 20) {
-        return "L'ingrédient doit avoir entre 3 et 20 caractères.";
+      if (!v || v.length < 3 || v.length > 30) {
+        return "L'ingrédient doit avoir entre 3 et 30 caractères.";
       }
       return true;
     },
@@ -285,8 +285,8 @@ export default {
     },
 
     unitRule(v) {
-      if (v.length < 2 || v.length > 20) {
-        return "L'unité doit avoir entre 2 et 20 caractères.";
+      if (v.length < 1 || v.length > 10) {
+        return "L'unité doit avoir entre 1 et 10 caractères.";
       }
       return true;
     },
