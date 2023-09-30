@@ -1,6 +1,6 @@
 <template>
   <v-card class="pa-4">
-    <v-card-title class="mb-4">
+    <v-card-title class="mb-4" color="#DCAF3A">
       {{ isEditing ? "Modifier la recette" : "Ajouter une recette" }}
     </v-card-title>
     <!-- FORM -->
@@ -23,14 +23,14 @@
 
       <!-- Ingrédients -->
       <v-row class="align-center">
-        <v-col cols="4">
+        <v-col cols="6">
           <v-text-field
             v-model="newIngredient.ingredient"
             label="Ingrédient"
             :rules="[ingredientRule]"
           ></v-text-field>
         </v-col>
-        <v-col cols="4">
+        <v-col cols="3">
           <v-text-field
             v-model="newIngredient.quantity"
             label="Quantité"
@@ -38,7 +38,7 @@
             type="number"
           ></v-text-field>
         </v-col>
-        <v-col cols="4">
+        <v-col cols="3">
           <v-text-field
             v-model="newIngredient.unit"
             label="Unité"
@@ -46,12 +46,14 @@
           ></v-text-field>
         </v-col>
       </v-row>
-      <v-btn color="primary" @click="addIngredient">
+      <v-btn color="#DCAF3A" @click="addIngredient" class="mb-3">
         Ajouter un ingrédient
       </v-btn>
 
       <!-- Liste des ingrédients -->
-      <p class="mt-3"><strong>Ingrédients</strong></p>
+      <p class="mb-3" v-if="ingredients.length > 0">
+        <strong style="color: #789664">Ingrédients</strong>
+      </p>
       <v-row
         v-for="(ingredient, index) in ingredients"
         :key="index"
@@ -67,13 +69,23 @@
           <p>{{ ingredient.unit }}</p>
         </v-col>
         <v-col cols="2" md="2" class="d-flex align-center">
-          <v-btn color="error" @click="removeLastIngredient(index)">X</v-btn>
+          <v-btn color="#DCAF3A" @click="removeLastIngredient(index)">X</v-btn>
         </v-col>
       </v-row>
 
+      <!-- Ajouter un message d'erreur -->
+      <v-alert
+        v-if="!isFormValid"
+        type="error"
+        dense
+        class="d-flex justify-center align-center mt-3"
+      >
+        Veuillez ajouter au moins un ingrédient.
+      </v-alert>
+
       <!-- Btn Ajouter / Annuler -->
       <v-card-actions class="d-flex justify-center">
-        <v-btn type="submit" color="primary">
+        <v-btn type="submit" color="#DCAF3A">
           {{ isEditing ? "Valider" : "Ajouter" }}
         </v-btn>
         <v-btn color="error" @click="cancel">Annuler</v-btn>
@@ -149,6 +161,10 @@ export default {
           .catch((error) => {
             console.error("Erreur lors de l'ajout de la recette :", error);
           });
+      } else {
+        if (this.ingredients.length === 0) {
+          this.isFormValid = false;
+        }
       }
     },
 
@@ -160,11 +176,14 @@ export default {
         this.description !== "" &&
         this.ingredients.length > 0
       ) {
+        const currentDate = new Date().toISOString();
+
         const updatedRecipe = {
           id: this.recipeToEdit.id,
           title: this.title,
           description: this.description,
           ingredients: JSON.stringify(this.ingredients),
+          created_at: currentDate,
         };
 
         fetch(`/api/recipes/${this.recipeToEdit.id}`, {
@@ -186,6 +205,10 @@ export default {
               error
             );
           });
+      } else {
+        if (this.ingredients.length === 0) {
+          this.isFormValid = false;
+        }
       }
     },
 
