@@ -1,86 +1,160 @@
 <template>
-    <!-- Card -->
-    <v-card class="my-card" elevation="5" @click="showPopup(index)">
-        <v-card-title class="text-center">{{ recipe.title }}</v-card-title>
-        <v-card-text class="description">{{ recipe.description }}</v-card-text>
+  <!-- Card -->
+  <v-card class="my-card" elevation="5" @click="showDetailPopup(index)">
+    <v-card-title class="text-center">{{ recipe.title }}</v-card-title>
+    <v-card-text class="description">{{ recipe.description }}</v-card-text>
+  </v-card>
 
-        <v-card-text>
-            <strong>Ingrédients</strong>
-            <p>{{ parseIngredients(recipe.ingredients).join(', ') }}</p>
-        </v-card-text>
+  <!-- Btn Modifier / Supprimer -->
+  <v-card-actions class="d-flex justify-center">
+    <v-btn text color="primary" @click="showEditPopup">Modifier</v-btn>
+    <v-btn text color="error" @click="showDeletePopup">Supprimer</v-btn>
+  </v-card-actions>
+
+  <!-- Popup Edit Form -->
+  <v-dialog v-model="editPopupVisible" max-width="500">
+    <recipe-form
+      ref="editForm"
+      @cancel="closePopup"
+      @recipe-updated="closePopup"
+      :recipeToEdit="selectedRecipe"
+    />
+  </v-dialog>
+
+  <!-- Popup Supprimer -->
+  <v-dialog v-model="deletePopupVisible" max-width="400">
+    <v-card>
+      <v-card-title class="text-center"
+        >Confirmation de suppression</v-card-title
+      >
+      <v-card-text>
+        Êtes-vous sûr de vouloir supprimer cette recette ?
+      </v-card-text>
+      <v-card-actions class="d-flex justify-center">
+        <!-- Ajoutez la classe ici -->
+        <v-btn color="primary" @click="deleteRecipe">Valider</v-btn>
+        <v-btn color="error" @click="closePopup">Annuler</v-btn>
+      </v-card-actions>
     </v-card>
+  </v-dialog>
 
-    <!-- Button Update / Delete -->
-    <v-card-actions class="d-flex justify-center">
-        <v-btn text color="primary">Modifier</v-btn>
-        <v-btn text color="error">Supprimer</v-btn>
-    </v-card-actions>
-
-    <!-- Popup Recipe Detail-->
-    <v-dialog v-model="popupVisible" max-width="400">
-        <v-card>
-        <v-card-title class="text-center">{{ selectedRecipe.title }}</v-card-title>
-        <v-card-text>
-            <p><strong>Description</strong></p>
-            <p>{{ selectedRecipe.description }}</p>
-            <p><strong>Ingrédients</strong></p>
-            <p>{{ parseIngredients(selectedRecipe.ingredients).join(', ') }}</p>
-            <p><strong>Date de création</strong></p>
-            <p>{{ formatDate(selectedRecipe.created_at) }}</p>
-        </v-card-text>
-        <v-card-actions>
-            <v-btn color="primary" @click="closePopup">Fermer</v-btn>
-        </v-card-actions>
-        </v-card>
-    </v-dialog>
+  <!-- Popup Detail Recipe -->
+  <v-dialog v-model="popupVisible" max-width="400">
+    <v-card>
+      <v-card-title class="text-center">{{
+        selectedRecipe.title
+      }}</v-card-title>
+      <v-card-text>
+        <p><strong>Description</strong></p>
+        <p>{{ selectedRecipe.description }}</p>
+        <p><strong>Ingrédients</strong></p>
+        <ul class="ingredient-list">
+          <li v-for="(ingredient, index) in parsedIngredients" :key="index">
+            <div class="ingredient-item">
+              <div class="ingredient-left">{{ ingredient.ingredient }}</div>
+              <div class="ingredient-right">
+                {{ ingredient.quantity }} {{ ingredient.unit }}
+              </div>
+            </div>
+          </li>
+        </ul>
+        <p><strong>Date de création</strong></p>
+        <p>{{ formatDate(selectedRecipe.created_at) }}</p>
+      </v-card-text>
+      <v-card-actions class="d-flex justify-center">
+        <v-btn color="primary" @click="closePopup">Fermer</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
-
 <script>
+import RecipeForm from "./RecipeForm.vue";
+
 export default {
+  components: {
+    RecipeForm,
+  },
+
   props: {
     recipe: Object,
   },
-   data() {
-    return {     
-        popupVisible: false,
-        selectedRecipe: null,
+
+  emits: ["recipe-deleted"],
+
+  data() {
+    return {
+      popupVisible: false,
+      editPopupVisible: false,
+      deletePopupVisible: false,
+      selectedRecipe: null,
+      confirmDeleteDialog: false,
     };
   },
-  methods: {
-    parseIngredients(ingredients) {
-        const cleanedIngredients = ingredients.replace(/^\[|\]$/g, '');
-        const ingredientArray = cleanedIngredients.split(',');
-        const trimmedIngredients = ingredientArray.map((ingredient) => ingredient.trim().replace(/^"|"$/g, ''));
-        return trimmedIngredients;
-    },
 
+  methods: {
+    // Format Date
     formatDate(dateString) {
-      const options = { 
-        year: 'numeric', 
-        month: '2-digit', 
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
+      const options = {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
       };
       const date = new Date(dateString);
-      return date.toLocaleDateString('fr-FR', options);
+      return date.toLocaleDateString("fr-FR", options);
     },
 
-    showPopup() {
+    // Delete Recipe
+    deleteRecipe() {
+      const recipeId = this.selectedRecipe.id;
+      fetch(`/api/recipes/${recipeId}`, {
+        method: "DELETE",
+      })
+        .then((response) => {
+          if (response.ok) {
+            this.closePopup();
+            this.$emit("recipe-deleted", this.recipe.id);
+          } else {
+            console.error("Erreur lors de la suppression de la recette");
+          }
+        })
+        .catch((error) => {
+          console.error("Erreur lors de la suppression de la recette :", error);
+        });
+    },
+
+    // Popup Management
+    showDetailPopup() {
       this.selectedRecipe = this.recipe;
       this.popupVisible = true;
     },
 
+    showEditPopup() {
+      this.selectedRecipe = this.recipe;
+      this.editPopupVisible = true;
+    },
+
+    showDeletePopup() {
+      this.selectedRecipe = this.recipe;
+      this.deletePopupVisible = true;
+    },
+
     closePopup() {
       this.popupVisible = false;
+      this.editPopupVisible = false;
+      this.deletePopupVisible = false;
     },
+  },
 
-    editRecipe() {
-    },
-
-    deleteRecipe() {
+  computed: {
+    parsedIngredients() {
+      if (this.selectedRecipe && this.selectedRecipe.ingredients) {
+        return JSON.parse(this.selectedRecipe.ingredients);
+      }
+      return [];
     },
   },
 };
@@ -101,7 +175,24 @@ export default {
 .text-center {
   text-align: center;
 }
+
+.ingredient-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ingredient-item {
+  display: flex;
+  justify-content: space-between;
+}
+
+.ingredient-left {
+  flex: 1;
+}
+
+.ingredient-right {
+  flex: 1;
+  text-align: right;
+}
 </style>
-
-
-
