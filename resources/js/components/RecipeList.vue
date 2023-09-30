@@ -36,7 +36,7 @@
         >
           <recipe-card
             :recipe="recipe"
-            @recipe-deleted="handleRecipeDeleted"
+            @recipe-deleted="onRecipeDeleted"
           ></recipe-card>
         </v-col>
       </v-row>
@@ -74,7 +74,7 @@ export default {
         console.error("Erreur lors de la récupération des recettes :", error);
       });
 
-    // Get Emit From RecipForm
+    // Get Emit From RecipeForm
     // On EDIT
     const eventBus = createEventBus();
     eventBus.on("recipe-updated", (updatedRecipe) => {
@@ -84,20 +84,19 @@ export default {
 
       if (index !== -1) {
         this.recipes.splice(index, 1);
-
         this.recipes.push(updatedRecipe);
         this.recipes.sort((a, b) => a.id - b.id);
 
         const filteredIndex = this.filteredRecipes.findIndex(
           (recipe) => recipe.id === updatedRecipe.id
         );
+
         if (filteredIndex !== -1) {
           this.filteredRecipes.splice(filteredIndex, 1);
           this.filteredRecipes.push(updatedRecipe);
           this.filteredRecipes.sort((a, b) => a.id - b.id);
         }
 
-        // Fermer le formulaire
         this.formVisible = false;
       }
     });
@@ -140,7 +139,7 @@ export default {
     },
 
     // On DELETE
-    handleRecipeDeleted(deletedRecipeId) {
+    onRecipeDeleted(deletedRecipeId) {
       this.recipes = this.recipes.filter(
         (recipe) => recipe.id !== deletedRecipeId
       );
@@ -151,4 +150,3 @@ export default {
   },
 };
 </script>
-
