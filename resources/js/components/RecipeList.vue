@@ -1,5 +1,10 @@
 <template>
   <div>
+    <!-- ToolBar -->
+    <v-toolbar dark prominent color="#789664">
+      <v-toolbar-title>MyRecipe</v-toolbar-title>
+    </v-toolbar>
+
     <v-container class="my-4">
       <!-- SearchBar -->
       <search-bar @search="filterRecipes" />
@@ -13,7 +18,7 @@
           lg="3"
           class="d-flex justify-center align-center"
         >
-          <v-btn color="primary" @click="showRecipeForm"
+          <v-btn color="#DCAF3A" @click="showRecipeForm"
             >Ajouter une recette</v-btn
           >
         </v-col>
@@ -69,6 +74,8 @@ export default {
         console.error("Erreur lors de la récupération des recettes :", error);
       });
 
+    // Get Emit From RecipForm
+    // On EDIT
     const eventBus = createEventBus();
     eventBus.on("recipe-updated", (updatedRecipe) => {
       const index = this.recipes.findIndex(
@@ -77,7 +84,9 @@ export default {
 
       if (index !== -1) {
         this.recipes.splice(index, 1);
+
         this.recipes.push(updatedRecipe);
+        this.recipes.sort((a, b) => a.id - b.id);
 
         const filteredIndex = this.filteredRecipes.findIndex(
           (recipe) => recipe.id === updatedRecipe.id
@@ -85,6 +94,7 @@ export default {
         if (filteredIndex !== -1) {
           this.filteredRecipes.splice(filteredIndex, 1);
           this.filteredRecipes.push(updatedRecipe);
+          this.filteredRecipes.sort((a, b) => a.id - b.id);
         }
 
         // Fermer le formulaire
@@ -98,7 +108,6 @@ export default {
       recipes: [],
       filteredRecipes: [],
       formVisible: false,
-      ingredients: [""],
     };
   },
 
@@ -115,7 +124,7 @@ export default {
       });
     },
 
-    // Form
+    // Form Display
     showRecipeForm() {
       this.formVisible = true;
     },
@@ -129,29 +138,6 @@ export default {
       this.filteredRecipes.push(newRecipe);
       this.formVisible = false;
     },
-
-    // On EDIT
-    // onRecipeUpdated(updatedRecipe) {
-    //   console.log("ça rentre");
-    //   const index = this.recipes.findIndex(
-    //     (recipe) => recipe.id === updatedRecipe.id
-    //   );
-    //   if (index !== -1) {
-    //     this.recipes.splice(index, 1);
-    //   }
-
-    //   const filteredIndex = this.filteredRecipes.findIndex(
-    //     (recipe) => recipe.id === updatedRecipe.id
-    //   );
-    //   if (filteredIndex !== -1) {
-    //     this.filteredRecipes.splice(filteredIndex, 1);
-    //   }
-
-    //   this.recipes.push(updatedRecipe);
-    //   this.filteredRecipes.push(updatedRecipe);
-
-    //
-    // },
 
     // On DELETE
     handleRecipeDeleted(deletedRecipeId) {
