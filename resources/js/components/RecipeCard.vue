@@ -5,7 +5,10 @@
     elevation="5"
     @click="showDetailPopup(index)"
   >
-    <img src="/images/food.jpg" alt="Food" />
+    <img
+      src="https://img.freepik.com/photos-gratuite/vue-laterale-pommes-terre-viande-sauce-tomate-roquette-salade-grecque-soupe-table_141793-2866.jpg?w=1380&t=st=1696087444~exp=1696088044~hmac=323365425eda27e571463d5ac05f7c4157ce94d0a52a6eb6ea3d1c7e6dcbb8eb"
+      alt="Food"
+    />
     <v-card-title class="text-center" style="color: #789664">{{
       recipe.title
     }}</v-card-title>
