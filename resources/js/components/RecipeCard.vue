@@ -1,6 +1,11 @@
 <template>
   <!-- Card -->
-  <v-card class="my-card" elevation="5" @click="showDetailPopup(index)">
+  <v-card
+    class="my-card custom-card"
+    elevation="5"
+    @click="showDetailPopup(index)"
+  >
+    <img src="/images/food.jpg" alt="Food" />
     <v-card-title class="text-center">{{ recipe.title }}</v-card-title>
     <v-card-text class="description">{{ recipe.description }}</v-card-text>
   </v-card>
@@ -47,7 +52,7 @@
       <v-card-text>
         <p><strong>Description</strong></p>
         <p>{{ selectedRecipe.description }}</p>
-        <p><strong>Ingrédients</strong></p>
+        <p class="mt-3"><strong>Ingrédients</strong></p>
         <ul class="ingredient-list">
           <li v-for="(ingredient, index) in parsedIngredients" :key="index">
             <div class="ingredient-item">
@@ -58,7 +63,7 @@
             </div>
           </li>
         </ul>
-        <p><strong>Date de création</strong></p>
+        <p class="mt-3"><strong>Date de création</strong></p>
         <p>{{ formatDate(selectedRecipe.created_at) }}</p>
       </v-card-text>
       <v-card-actions class="d-flex justify-center">
@@ -194,5 +199,15 @@ export default {
 .ingredient-right {
   flex: 1;
   text-align: right;
+}
+
+.custom-card {
+  max-width: 500px;
+  height: auto;
+}
+
+.custom-card img {
+  width: 100%;
+  height: auto;
 }
 </style>
