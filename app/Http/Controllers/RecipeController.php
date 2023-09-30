@@ -8,23 +8,26 @@ use Illuminate\Support\Facades\Validator;
 
 class RecipeController extends Controller
 {
-    public function index()
-    {
-        $recipes = Recipe::all();
-        return response()->json($recipes);;
-    }
-
+    // View
     public function indexView()
     {
         $recipes = Recipe::all();
         return view('recipes.index', compact('recipes'));
     }
 
+    // READ
+    public function index()
+    {
+        $recipes = Recipe::all();
+        return response()->json($recipes);;
+    }
+
+    // CREATE
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
-            'description' => 'required|string',
+            'description' => 'required|string|max:1000',
             'ingredients' => 'required|string',
         ]);
 
@@ -42,6 +45,7 @@ class RecipeController extends Controller
         return response()->json($recipe, 201);
     }
 
+    // UPDATE
     public function update(Request $request, $id)
     {
         $validatedData = $request->validate([
@@ -61,6 +65,7 @@ class RecipeController extends Controller
         return response()->json(['message' => 'Recette mise à jour avec succès']);
     }
 
+    // DELETE
     public function delete($id)
     {
         try {
